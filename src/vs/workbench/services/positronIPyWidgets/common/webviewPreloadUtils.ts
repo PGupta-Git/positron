@@ -151,6 +151,7 @@ export function getWebviewMessageType(outputs: { mime: string }[]): 'widget' | '
 export function isComplexHtml(html: string): boolean {
 	const lower = html.toLowerCase();
 	return lower.includes('<script') ||
+		lower.includes('<style') ||
 		lower.includes('<body') ||
 		lower.includes('<html') ||
 		lower.includes('<iframe') ||

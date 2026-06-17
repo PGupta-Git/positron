@@ -75,7 +75,8 @@ const CellOutputsSection = React.memo(function CellOutputsSection({ cell, output
 	useScrollingIndicator(outputsInnerRef);
 
 	// Per-cell scrolling override takes precedence over global setting.
-	const outputScrolling = perCellScrolling ?? layout.outputScrolling;
+	const hasWebviewOutput = outputs.some(o => o.preloadMessageResult !== undefined);
+	const outputScrolling = (perCellScrolling ?? layout.outputScrolling) && !hasWebviewOutput;
 
 	const clearHeightOverride = useCallback(() => {
 		const el = outputsInnerRef.current;
