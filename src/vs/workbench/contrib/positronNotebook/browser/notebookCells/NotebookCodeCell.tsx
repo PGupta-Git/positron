@@ -76,7 +76,8 @@ const CellOutputsSection = React.memo(function CellOutputsSection({ cell, output
 
 	// Per-cell scrolling override takes precedence over global setting.
 	const hasWebviewOutput = outputs.some(o => o.preloadMessageResult !== undefined);
-	const outputScrolling = (perCellScrolling ?? layout.outputScrolling) && !hasWebviewOutput;
+	const outputScrollingEnabled = perCellScrolling ?? layout.outputScrolling;
+	const applyOutputScrolling = outputScrollingEnabled && !hasWebviewOutput;
 
 	const clearHeightOverride = useCallback(() => {
 		const el = outputsInnerRef.current;
@@ -90,7 +91,7 @@ const CellOutputsSection = React.memo(function CellOutputsSection({ cell, output
 	// Reset height override when outputs change (new execution) or scrolling mode toggles.
 	useEffect(() => {
 		clearHeightOverride();
-	}, [outputs, outputScrolling, clearHeightOverride]);
+	}, [outputs, applyOutputScrolling, clearHeightOverride]);
 
 	const onBeginResize = useCallback((): HorizontalSplitterResizeParams => {
 		const el = outputsInnerRef.current;
@@ -234,7 +235,7 @@ const CellOutputsSection = React.memo(function CellOutputsSection({ cell, output
 					'positron-notebook-code-cell-outputs-inner',
 					'positron-notebook-scrollable',
 					'positron-notebook-scrollable-fade',
-					{ 'output-scrolling': outputScrolling },
+					{ 'output-scrolling': applyOutputScrolling },
 				)}>
 
 					{isCollapsed
@@ -248,14 +249,14 @@ const CellOutputsSection = React.memo(function CellOutputsSection({ cell, output
 							>
 								<CellOutput
 									{...output}
-									outputScrolling={outputScrolling}
+									outputScrolling={outputScrollingEnabled}
 									onShowFullOutput={() => cell.showFullOutput()}
 								/>
 							</NotebookErrorBoundary>
 						))
 					}
 				</div>
-				{outputScrolling && !isCollapsed && hasOutputs &&
+				{applyOutputScrolling && !isCollapsed && hasOutputs &&
 					<HorizontalSplitter
 						showResizeIndicator
 						onBeginResize={onBeginResize}
@@ -313,7 +314,7 @@ interface CellOutputProps extends NotebookCellOutputs {
 
 const CellOutput = React.memo(function CellOutput(output: CellOutputProps) {
 	if (output.preloadMessageResult) {
-		return <PreloadMessageOutput preloadMessageResult={output.preloadMessageResult} />;
+		return <PreloadMessageOutput outputScrolling={output.outputScrolling} preloadMessageResult={output.preloadMessageResult} />;
 	}
 
 	const { parsed, outputs, outputScrolling, onShowFullOutput } = output;

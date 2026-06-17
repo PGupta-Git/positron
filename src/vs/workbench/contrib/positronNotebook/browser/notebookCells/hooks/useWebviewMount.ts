@@ -70,7 +70,7 @@ interface WebviewMountOptions {
  *
  * @throws {WebviewMountError} When the webview fails to mount or during layout operations
  */
-export function useWebviewMount(webview: Promise<INotebookOutputWebview>, options?: WebviewMountOptions) {
+export function useWebviewMount(webview: Promise<INotebookOutputWebview>, outputScrolling = true, options?: WebviewMountOptions) {
 	// State tracking: loading or error
 	const [isLoading, setIsLoading] = React.useState<boolean>(true);
 	const [error, setError] = React.useState<WebviewMountError | null>(null);
@@ -89,7 +89,8 @@ export function useWebviewMount(webview: Promise<INotebookOutputWebview>, option
 	// Memoize the webview message handler
 	const handleWebviewMessage = React.useCallback(({ message }: { message: unknown }) => {
 		if (isHTMLOutputWebviewMessage(message) && containerRef.current) {
-			let boundedHeight = Math.min(message.bodyScrollHeight, MAX_OUTPUT_HEIGHT);
+			const cap = outputScrolling ? MAX_OUTPUT_HEIGHT : Infinity;
+			let boundedHeight = Math.min(message.bodyScrollHeight, cap);
 			// Avoid undesired default 150px "empty output" height
 			if (boundedHeight === EMPTY_OUTPUT_HEIGHT) {
 				boundedHeight = 0;
@@ -115,7 +116,7 @@ export function useWebviewMount(webview: Promise<INotebookOutputWebview>, option
 		if (isDoubleClickMessage(message)) {
 			onDoubleClick?.();
 		}
-	}, [notebookInstance, onDoubleClick]);
+	}, [notebookInstance, onDoubleClick, outputScrolling]);
 
 	React.useEffect(() => {
 		// Abort controller for canceling ongoing tasks if needed
